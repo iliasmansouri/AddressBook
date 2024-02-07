@@ -8,6 +8,7 @@ class Record:
         self.parse_date(date)
 
     def parse_date(self, date_str):
+        # TODO better handling of different date formats
         try:
             self.date = datetime.strptime(date_str, "%d/%m/%y").date()
         except ValueError:
