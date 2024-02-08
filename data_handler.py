@@ -70,6 +70,9 @@ class AddressBook:
         return matching_records
 
     def add_record(self, name: str, gender: str, date: str) -> None:
+        if any(record.name.lower() == name.lower() for record in self.records):
+            raise ValueError(f"Record with name '{name}' already exists.")
+
         record = Record(name, gender, date)
         self.records.append(record)
         self.df = pd.concat(
@@ -105,7 +108,6 @@ if __name__ == "__main__":
         print(record)
     # Add a new record
     address_book.add_record("John Doe", "Male", "15/05/90")
-
     # Save records to the file
     address_book.save_records()
 
