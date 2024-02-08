@@ -1,5 +1,6 @@
 from datetime import datetime, date
 from typing import List
+import pandas as pd
 
 
 class Record:
@@ -20,13 +21,18 @@ class Record:
     def __str__(self) -> str:
         return f"[Name: \t{self.name}, \nGender: {self.gender}, \nDate: \t{self.date}]"
 
+    def to_dict(self):
+        return {"Name": self.name, "Gender": self.gender, "Date": self.date}
+
 
 class AddressBook:
     def __init__(self, filename: str) -> None:
         self.filename: str = filename
         self.records: List[Record] = []
+        self.df: pd.DataFrame = pd.DataFrame(columns=["Name", "Gender", "Date"])
+        self.__load_records()
 
-    def load_records(self) -> None:
+    def __load_records(self) -> None:
         try:
             with open(self.filename, "r") as file:
                 for line in file:
@@ -36,6 +42,9 @@ class AddressBook:
                     date = record_data[2].strip()
                     record = Record(name, gender, date)
                     self.records.append(record)
+                    self.df = pd.concat(
+                        [self.df, pd.DataFrame([record.to_dict()])], ignore_index=True
+                    )
         except FileNotFoundError:
             print(f"File '{self.filename}' not found.")
 
@@ -63,24 +72,37 @@ class AddressBook:
     def add_record(self, name: str, gender: str, date: str) -> None:
         record = Record(name, gender, date)
         self.records.append(record)
+        self.df = pd.concat(
+            [self.df, pd.DataFrame([record.to_dict()])], ignore_index=True
+        )
 
     def save_records(self, filename: str = "records.txt") -> None:
         with open(filename, "w") as file:
             for record in self.records:
                 file.write(f"{record.name}, {record.gender}, {record.date}\n")
 
+    def get_df(self) -> pd.DataFrame:
+        return self.df
+
+    def delete_record(self, name: str) -> None:
+        # Delete record from the list of records
+        self.records = [
+            record for record in self.records if record.name.lower() != name.lower()
+        ]
+
+        # Delete record from the DataFrame
+        self.df = self.df[self.df["Name"].str.lower() != name.lower()]
+
 
 # Example Usage:
 if __name__ == "__main__":
     # Example of how to use the AddressBook class
-    address_book = AddressBook("data.txt")
-    address_book.load_records()
+    address_book = AddressBook("./assets/data.txt")
 
     # Display loaded records
     print("Loaded Records:")
     for record in address_book.get_records():
         print(record)
-
     # Add a new record
     address_book.add_record("John Doe", "Male", "15/05/90")
 
