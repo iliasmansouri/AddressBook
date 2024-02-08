@@ -70,6 +70,11 @@ class TestAddressBook(unittest.TestCase):
             "Jane Doe", [record.name for record in self.address_book.records]
         )
 
+    def test_add_record_duplicate_name(self):
+        self.address_book.add_record("John", "Male", "25/12/20")
+        with self.assertRaises(ValueError):
+            self.address_book.add_record("John", "Male", "25/12/20")
+
     def test_save_records(self):
         # Test saving records
         self.address_book.save_records("test_saved_records.txt")
