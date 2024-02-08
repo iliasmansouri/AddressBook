@@ -18,6 +18,13 @@ class Browser:
                 oldest_record = record
         return oldest_record
 
+    def get_youngest_record(self) -> Optional[Record]:
+        youngest_record: Optional[Record] = None
+        for record in self.address_book.get_records():
+            if youngest_record is None or record.date > youngest_record.date:
+                youngest_record = record
+        return youngest_record
+
     def get_age_difference(self, name1: str, name2: str) -> str:
         records = self.address_book.get_record_by_name(
             name1
@@ -26,7 +33,6 @@ class Browser:
             return "Both names not found in the address book."
 
         record1, record2 = records[0], records[1]
-        date_format = "%d/%m/%y"
         date1 = record1.date
         date2 = record2.date
         age_difference = abs((date2 - date1).days)
@@ -59,3 +65,12 @@ if __name__ == "__main__":
 
     age_difference: str = browser.get_age_difference("Bill McKnight", "Paul Robinson")
     print(age_difference)
+
+    # Get the most recent record
+    youngest_record: Optional[Record] = browser.get_youngest_record()
+    if youngest_record:
+        print(
+            f"The youngest record is: {youngest_record.name}, {youngest_record.gender}, {youngest_record.date}"
+        )
+    else:
+        print("No records found in the address book.")

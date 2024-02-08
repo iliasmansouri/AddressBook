@@ -1,62 +1,102 @@
-from data_handler import Record, AddressBook
-from datetime import datetime
-from typing import Union, Optional
+import streamlit as st
+from data_handler import AddressBook
+from browser import Browser
+from viz_utils import draw_pie
 
 
-class Browser:
-    def __init__(self, address_book: AddressBook) -> None:
-        self.address_book: AddressBook = address_book
-
-    def count_records(self, gender: str) -> int:
-        records = self.address_book.get_records_by_gender(gender)
-        return len(records)
-
-    def get_oldest_record(self) -> Optional[Record]:
-        oldest_record: Optional[Record] = None
-        for record in self.address_book.get_records():
-            if oldest_record is None or record.date < oldest_record.date:
-                oldest_record = record
-        return oldest_record
-
-    def get_age_difference(self, name1: str, name2: str) -> str:
-        records = self.address_book.get_record_by_name(
-            name1
-        ) + self.address_book.get_record_by_name(name2)
-        if len(records) < 2:
-            return "Both names not found in the address book."
-
-        record1, record2 = records[0], records[1]
-        date_format = "%d/%m/%y"
-        date1 = record1.date
-        date2 = record2.date
-        age_difference = abs((date2 - date1).days)
-        return (
-            f"The age difference between {name1} and {name2} is {age_difference} days."
+def add_record():
+    with st.form("add_record_form"):
+        name = st.text_input("Name")
+        gender = st.selectbox(
+            "Select gender",
+            ("Male", "Female"),
         )
+        date = st.date_input("Date", format="YYYY/MM/DD")
+        submitted = st.form_submit_button("Submit")
+        if submitted and name and gender and date:
+            return (name, gender, date)
+        else:
+            st.write("Fill in all 3 fields")
+            return False
+
+
+def delete_record():
+    with st.sidebar.form("delete_record_form"):
+        name = st.selectbox(
+            "Which name do you want to delete?",
+            st.session_state.address_book.get_names(),
+        )
+        deleted = st.form_submit_button("Delete")
+        if deleted and name:
+            return name
+        else:
+            return False
+
+
+def draw_stats():
+    male_count = st.session_state["browser"].count_records("male")
+    female_count = st.session_state["browser"].count_records("female")
+
+    draw_pie(male_count, female_count)
+
+
+def calculate_age_for_2_names():
+    left_column, right_column = st.columns(2)
+
+    with left_column:
+        name_1 = st.selectbox(
+            "Select first name:",
+            st.session_state.address_book.get_names(),
+        )
+    with right_column:
+        name_2 = st.selectbox(
+            "Select second name:",
+            st.session_state.address_book.get_names(),
+        )
+
+    return st.session_state.browser.get_age_difference(name_1, name_2)
 
 
 if __name__ == "__main__":
-    address_book: AddressBook = AddressBook("data.txt")
-    address_book.load_records()
+    address_book = AddressBook("./assets/data.txt")
 
-    browser: Browser = Browser(address_book)
+    if "address_book" not in st.session_state:
+        st.session_state["address_book"] = address_book
 
-    # Count male records
-    num_males: int = browser.count_records("male")
-    print(f"Number of males in the address book: {num_males}")
+    if "browser" not in st.session_state:
+        st.session_state["browser"] = Browser(address_book)
 
-    # Count female records
-    num_females: int = browser.count_records("female")
-    print(f"Number of females in the address book: {num_females}")
+    record_to_add = add_record()
+    record_to_delete = delete_record()
 
-    # Get the oldest record
-    oldest_record: Optional[Record] = browser.get_oldest_record()
-    if oldest_record:
-        print(
-            f"The oldest record is: {oldest_record.name}, {oldest_record.gender}, {oldest_record.date}"
-        )
-    else:
-        print("No records found in the address book.")
+    if record_to_add:
+        name = record_to_add[0]
+        gender = record_to_add[1]
+        date = record_to_add[2].strftime("%d/%m/%y")
+        try:
+            st.session_state.address_book.add_record(name, gender, date)
+            # force the code inside form_fn to rerun
+            st.rerun()
+        except Exception as e:
+            st.error(str(e))
 
-    age_difference: str = browser.get_age_difference("Bill McKnight", "Paul Robinson")
-    print(age_difference)
+    if record_to_delete:
+        name = record_to_delete
+        try:
+            st.session_state.address_book.delete_record(name)
+            # force the code inside form_fn to rerun
+            st.rerun()
+        except Exception as e:
+            st.error(str(e))
+
+    st.write(st.session_state.address_book.get_df())
+
+    if st.button("Save addressbook"):
+        st.session_state.address_book.save_records("./assets/records.txt")
+
+    draw_stats()
+
+    st.write(f"Most recent record is: {st.session_state.browser.get_youngest_record()}")
+    st.write(f"Most oldest record is: {st.session_state.browser.get_oldest_record()}")
+
+    st.write(calculate_age_for_2_names())
