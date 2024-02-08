@@ -1,31 +1,32 @@
-from datetime import datetime
+from datetime import datetime, date
+from typing import List
 
 
 class Record:
-    def __init__(self, name, gender, date):
-        self.name = name
-        self.gender = gender
+    def __init__(self, name: str, gender: str, date: str) -> None:
+        self.name: str = name
+        self.gender: str = gender
         self.parse_date(date)
 
-    def parse_date(self, date_str):
+    def parse_date(self, date_str: str) -> None:
         # TODO better handling of different date formats
         try:
-            self.date = datetime.strptime(date_str, "%d/%m/%y").date()
+            self.date: date = datetime.strptime(date_str, "%d/%m/%y").date()
         except ValueError:
             raise ValueError(
                 "Invalid date format. Date should be in the format 'dd/mm/yy'."
             )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"[Name: \t{self.name}, \nGender: {self.gender}, \nDate: \t{self.date}]"
 
 
 class AddressBook:
-    def __init__(self, filename):
-        self.filename = filename
-        self.records = []
+    def __init__(self, filename: str) -> None:
+        self.filename: str = filename
+        self.records: List[Record] = []
 
-    def load_records(self):
+    def load_records(self) -> None:
         try:
             with open(self.filename, "r") as file:
                 for line in file:
@@ -38,32 +39,32 @@ class AddressBook:
         except FileNotFoundError:
             print(f"File '{self.filename}' not found.")
 
-    def get_records(self):
+    def get_records(self) -> List[Record]:
         return self.records
 
-    def get_record_by_name(self, name):
+    def get_record_by_name(self, name: str) -> List[Record]:
         matching_records = [
             record for record in self.records if record.name.lower() == name.lower()
         ]
         return matching_records
 
-    def get_records_by_gender(self, gender):
+    def get_records_by_gender(self, gender: str) -> List[Record]:
         matching_records = [
             record for record in self.records if record.gender.lower() == gender.lower()
         ]
         return matching_records
 
-    def get_records_by_year(self, year):
+    def get_records_by_year(self, year: str) -> List[Record]:
         matching_records = [
             record for record in self.records if record.date.year == int(year)
         ]
         return matching_records
 
-    def add_record(self, name, gender, date):
+    def add_record(self, name: str, gender: str, date: str) -> None:
         record = Record(name, gender, date)
         self.records.append(record)
 
-    def save_records(self, filename="records.txt"):
+    def save_records(self, filename: str = "records.txt") -> None:
         with open(filename, "w") as file:
             for record in self.records:
                 file.write(f"{record.name}, {record.gender}, {record.date}\n")
