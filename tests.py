@@ -1,6 +1,6 @@
 import unittest
 from datetime import datetime
-from data_handler import Record, AddressBook
+from core.data_handler import Record, AddressBook
 import os
 
 

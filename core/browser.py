@@ -1,4 +1,4 @@
-from data_handler import Record, AddressBook
+from .data_handler import Record, AddressBook
 from datetime import datetime
 from typing import Union, Optional
 
@@ -42,7 +42,7 @@ class Browser:
 
 
 if __name__ == "__main__":
-    address_book: AddressBook = AddressBook("./assets/data.txt")
+    address_book: AddressBook = AddressBook("assets/data.txt")
 
     browser: Browser = Browser(address_book)
 

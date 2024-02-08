@@ -1,7 +1,7 @@
 import streamlit as st
-from data_handler import AddressBook
-from browser import Browser
-from viz_utils import draw_pie
+from core.data_handler import AddressBook
+from core.browser import Browser
+from core.viz_utils import draw_pie
 
 
 def add_record():
