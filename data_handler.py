@@ -96,6 +96,12 @@ class AddressBook:
         # Delete record from the DataFrame
         self.df = self.df[self.df["Name"].str.lower() != name.lower()]
 
+    def get_names(self) -> List[str]:
+        """
+        Retrieve a list of names from the records.
+        """
+        return [record.name for record in self.records]
+
 
 # Example Usage:
 if __name__ == "__main__":
